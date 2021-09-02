@@ -74,8 +74,8 @@ public class Tree<T> extends Composite<Div>
 
 	        return column;
 	    }
-	    
-		private Column<T> setHierarchyColumnWithIcon(ValueProvider<T, ?> valueProvider,
+
+        private Column<T> setHierarchyColumnWithIcon(ValueProvider<T, ?> valueProvider,
                 ValueProvider<T, VaadinIcon> iconProvider,
                 ValueProvider<T, StreamResource> iconSrcProvider) {
 	        Column<T> column = addColumn(TemplateRenderer
@@ -116,8 +116,12 @@ public class Tree<T> extends Composite<Div>
 
 	        return column;
 	    }
-		
-		public Column<T> setHierarchyColumn(ValueProvider<T, ?> valueProvider, ValueProvider<T, VaadinIcon> iconProvider, ValueProvider<T, StreamResource> iconSrcProvider, ValueProvider<T, String> titleProvider) {
+
+        public Column<T> setHierarchyColumn(ValueProvider<T, ?> valueProvider, ValueProvider<T, VaadinIcon> iconProvider, ValueProvider<T, String> titleProvider) {
+            return setHierarchyColumn(valueProvider, iconProvider, null, titleProvider);
+        }
+
+        public Column<T> setHierarchyColumn(ValueProvider<T, ?> valueProvider, ValueProvider<T, VaadinIcon> iconProvider, ValueProvider<T, StreamResource> iconSrcProvider, ValueProvider<T, String> titleProvider) {
 			removeAllColumns();
 			Column<T> column;
 			if ((iconProvider == null && iconSrcProvider == null) && (titleProvider == null)) {
