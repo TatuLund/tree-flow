@@ -1,12 +1,15 @@
 package org.vaadin.tatu;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Focusable;
 import com.vaadin.flow.component.HasComponents;
 import com.vaadin.flow.component.HasElement;
@@ -38,6 +41,7 @@ import com.vaadin.flow.function.SerializableComparator;
 import com.vaadin.flow.function.SerializableFunction;
 import com.vaadin.flow.function.SerializablePredicate;
 import com.vaadin.flow.function.ValueProvider;
+import com.vaadin.flow.server.StreamRegistration;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.StreamResourceRegistry;
 import com.vaadin.flow.server.VaadinSession;
@@ -56,6 +60,7 @@ public class Tree<T> extends Composite<Div>
         implements HasHierarchicalDataProvider<T>, Focusable, HasComponents, HasSize, HasElement {
 
 	private class CustomizedTreeGrid<T> extends TreeGrid<T> {
+	    private final List<StreamRegistration> registrations = new ArrayList<>();
 
 		private Column<T> setHierarchyColumn(ValueProvider<T, ?> valueProvider) {
 	        Column<T> column = addColumn(TemplateRenderer
@@ -161,7 +166,7 @@ public class Tree<T> extends Composite<Div>
             else {
                 StreamResourceRegistry resourceRegistry = VaadinSession
                         .getCurrent().getResourceRegistry();
-                resourceRegistry.registerResource(streamResource);
+                registrations.add(resourceRegistry.registerResource(streamResource));
                 return resourceRegistry.getTargetURI(streamResource).toString();
             }
         }
@@ -182,7 +187,13 @@ public class Tree<T> extends Composite<Div>
 	    	trimmed = trimmed.replace("_", "-");
 	    	return trimmed;
 	    }
-	}
+
+        @Override
+        protected void onDetach(DetachEvent detachEvent) {
+		    registrations.forEach(StreamRegistration::unregister);
+            super.onDetach(detachEvent);
+        }
+    }
 	
     private CustomizedTreeGrid<T> treeGrid = createTreeGrid();
 
