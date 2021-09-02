@@ -49,6 +49,12 @@ public class View extends Div {
         setSizeFull();
         add(withTreeToggleButtons(
                 departmentData.getRootDepartments().get(0), tree, message));
+
+        Tree<Department> treeWithoutIconSrcProvider = new Tree<>(Department::getName);
+        treeWithoutIconSrcProvider.setHeightByRows(true);
+        treeWithoutIconSrcProvider.setItems(departmentData.getRootDepartments(), departmentData::getChildDepartments);
+        treeWithoutIconSrcProvider.setItemIconProvider(item -> getIcon(item));
+        add(treeWithoutIconSrcProvider);
     }
 
     private StreamResource getImageIconSrc(Department item) {
