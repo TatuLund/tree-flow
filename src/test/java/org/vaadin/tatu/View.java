@@ -4,12 +4,12 @@ import java.util.Collections;
 import java.util.stream.Stream;
 
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.grid.Grid.SelectionMode;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.NativeButton;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
 
 @Route("")
 public class View extends Div {
@@ -28,6 +28,7 @@ public class View extends Div {
                 departmentData::getChildDepartments);
 
         tree.setItemIconProvider(item -> getIcon(item));
+        tree.setItemIconSrcProvider(item -> getImageIconSrc(item));
         tree.setItemTitleProvider(Department::getManager);
         
         tree.addExpandListener(event -> message.setValue(
@@ -47,10 +48,29 @@ public class View extends Div {
         setSizeFull();
         add(withTreeToggleButtons(
                 departmentData.getRootDepartments().get(0), tree, message));
+
+        Tree<Department> treeWithoutIconSrcProvider = new Tree<>(Department::getName);
+        treeWithoutIconSrcProvider.setHeightByRows(true);
+        treeWithoutIconSrcProvider.setItems(departmentData.getRootDepartments(), departmentData::getChildDepartments);
+        treeWithoutIconSrcProvider.setItemIconProvider(item -> getIcon(item));
+        add(treeWithoutIconSrcProvider);
     }
-    
+
+    private StreamResource getImageIconSrc(Department item) {
+        if (item.getName().equalsIgnoreCase("vaadin")) {
+            return new StreamResource("vaadin.svg", () ->
+                    getClass().getClassLoader().getResourceAsStream("images/vaadin.svg"));
+        }
+        else {
+            return null;
+        }
+    }
+
     private VaadinIcon getIcon(Department item) {
-    	if (item.getParent() == null) return VaadinIcon.BUILDING;
+        if (item.getParent() == null) return VaadinIcon.BUILDING;
+        else if (item.getName().equalsIgnoreCase("vaadin")) {
+            return null;
+        }
     	else return VaadinIcon.USER;
     }
     

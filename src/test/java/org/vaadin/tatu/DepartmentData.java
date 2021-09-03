@@ -23,7 +23,9 @@ public class DepartmentData {
         departmentList.add(
                 new Department(13, "DJO", departmentList.get(0), "Thomas"));
         departmentList.add(
-                new Department(14, "Component", departmentList.get(0), "Tomi"));
+                new Department(14, "Vaadin", departmentList.get(0), "Tomi"));
+        departmentList.add(
+                new Department(15, "Component", departmentList.get(0), "Tomi"));
         departmentList.add(new Department(2, "HR", null, "Anne"));
         departmentList.add(
                 new Department(21, "Office", departmentList.get(7), "Anu"));
