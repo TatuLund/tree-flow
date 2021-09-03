@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
 public class DepartmentData {
     private static final List<Department> DEPARTMENT_LIST = createDepartmentList();
 

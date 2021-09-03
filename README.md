@@ -7,6 +7,10 @@ Vaadin 14 Java version of Tree component
 
 ## Release notes
 
+### Version 1.2.0
+
+- Added support for image icons
+
 ### Version 1.1.1
 
 - Added workaround for focus(), see https://github.com/vaadin/vaadin-grid-flow/issues/634 

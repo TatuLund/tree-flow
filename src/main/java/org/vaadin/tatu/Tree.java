@@ -57,144 +57,170 @@ import com.vaadin.flow.shared.Registration;
  *            the data type
  */
 public class Tree<T> extends Composite<Div>
-        implements HasHierarchicalDataProvider<T>, Focusable, HasComponents, HasSize, HasElement {
+        implements HasHierarchicalDataProvider<T>, Focusable, HasComponents,
+        HasSize, HasElement {
 
-	private class CustomizedTreeGrid<T> extends TreeGrid<T> {
-	    private final List<StreamRegistration> registrations = new ArrayList<>();
+    private class CustomizedTreeGrid<T> extends TreeGrid<T> {
+        private final List<StreamRegistration> registrations = new ArrayList<>();
 
-		private Column<T> setHierarchyColumn(ValueProvider<T, ?> valueProvider) {
-	        Column<T> column = addColumn(TemplateRenderer
-	                .<T> of("<vaadin-grid-tree-toggle "
-	                        + "leaf='[[item.leaf]]' expanded='{{expanded}}' level='[[level]]'>"
-	                		+ "[[item.name]]"
-	                        + "</vaadin-grid-tree-toggle>")
-	                .withProperty("leaf",
-	                        item -> !getDataCommunicator().hasChildren(item))
-	                .withProperty("name",
-	                        value -> String.valueOf(valueProvider.apply(value))));
-	        final SerializableComparator<T> comparator = 
-	                (a, b) -> compareMaybeComparables(valueProvider.apply(a),
-	                        valueProvider.apply(b));
-	        column.setComparator(comparator);
+        private Column<T> setHierarchyColumn(
+                ValueProvider<T, ?> valueProvider) {
+            Column<T> column = addColumn(TemplateRenderer
+                    .<T> of("<vaadin-grid-tree-toggle "
+                            + "leaf='[[item.leaf]]' expanded='{{expanded}}' level='[[level]]'>"
+                            + "[[item.name]]" + "</vaadin-grid-tree-toggle>")
+                    .withProperty("leaf",
+                            item -> !getDataCommunicator().hasChildren(item))
+                    .withProperty("name", value -> String
+                            .valueOf(valueProvider.apply(value))));
+            final SerializableComparator<T> comparator = (a,
+                    b) -> compareMaybeComparables(valueProvider.apply(a),
+                            valueProvider.apply(b));
+            column.setComparator(comparator);
 
-	        return column;
-	    }
-
-        private Column<T> setHierarchyColumnWithIcon(ValueProvider<T, ?> valueProvider,
-                ValueProvider<T, VaadinIcon> iconProvider,
-                ValueProvider<T, StreamResource> iconSrcProvider) {
-	        Column<T> column = addColumn(TemplateRenderer
-	                .<T> of("<vaadin-grid-tree-toggle "
-	                        + "leaf='[[item.leaf]]' expanded='{{expanded}}' level='[[level]]'>"
-	                        + "<iron-icon src='[[item.iconSrc]]' icon='[[item.icon]]' style='padding-right: 10px'></iron-icon>"
-	                		+ "[[item.name]]"
-	                        + "</vaadin-grid-tree-toggle>")
-	                .withProperty("leaf",
-	                        item -> !getDataCommunicator().hasChildren(item))
-	                .withProperty("icon", icon -> iconProvider == null ? null : getIcon(iconProvider, icon))
-                    .withProperty("iconSrc", icon -> iconSrcProvider == null ? null : getIconSrc(iconSrcProvider, icon))
-	                .withProperty("name",
-	                        value -> String.valueOf(valueProvider.apply(value))));
-	        final SerializableComparator<T> comparator = 
-	                (a, b) -> compareMaybeComparables(valueProvider.apply(a),
-	                        valueProvider.apply(b));
-	        column.setComparator(comparator);
-
-	        return column;
-	    }
-
-		private Column<T> setHierarchyColumnWithTitle(ValueProvider<T, ?> valueProvider, ValueProvider<T, String> titleProvider) {
-	        Column<T> column = addColumn(TemplateRenderer
-	                .<T> of("<vaadin-grid-tree-toggle title='[[item.title]]'"
-	                        + "leaf='[[item.leaf]]' expanded='{{expanded}}' level='[[level]]'>"
-	                		+ "[[item.name]]"
-	                        + "</vaadin-grid-tree-toggle>")
-	                .withProperty("leaf",
-	                        item -> !getDataCommunicator().hasChildren(item))
-	                .withProperty("title", title -> String.valueOf(titleProvider.apply(title)))
-	                .withProperty("name",
-	                        value -> String.valueOf(valueProvider.apply(value))));
-	        final SerializableComparator<T> comparator = 
-	                (a, b) -> compareMaybeComparables(valueProvider.apply(a),
-	                        valueProvider.apply(b));
-	        column.setComparator(comparator);
-
-	        return column;
-	    }
-
-        public Column<T> setHierarchyColumn(ValueProvider<T, ?> valueProvider, ValueProvider<T, VaadinIcon> iconProvider, ValueProvider<T, String> titleProvider) {
-            return setHierarchyColumn(valueProvider, iconProvider, null, titleProvider);
+            return column;
         }
 
-        public Column<T> setHierarchyColumn(ValueProvider<T, ?> valueProvider, ValueProvider<T, VaadinIcon> iconProvider, ValueProvider<T, StreamResource> iconSrcProvider, ValueProvider<T, String> titleProvider) {
-			removeAllColumns();
-			Column<T> column;
-			if ((iconProvider == null && iconSrcProvider == null) && (titleProvider == null)) {
-				column = setHierarchyColumn(valueProvider);
-			} else if ((iconProvider != null || iconSrcProvider != null) && (titleProvider == null)) {
-				column = setHierarchyColumnWithIcon(valueProvider,iconProvider, iconSrcProvider);
-			} else if ((iconProvider == null && iconSrcProvider == null) && (titleProvider != null)) {
-				column = setHierarchyColumnWithTitle(valueProvider,titleProvider);
-			} else {
-				column = addColumn(TemplateRenderer
-	                .<T> of("<vaadin-grid-tree-toggle title='[[item.title]]'"
-	                        + "leaf='[[item.leaf]]' expanded='{{expanded}}' level='[[level]]'>"
-	                        + "<iron-icon src='[[item.iconSrc]]' icon='[[item.icon]]' style='height: 15px; padding-right: 10px'></iron-icon>"
-	                		+ "[[item.name]]"
-	                        + "</vaadin-grid-tree-toggle>")
-	                .withProperty("leaf",
-	                        item -> !getDataCommunicator().hasChildren(item))
-	                .withProperty("title", title -> String.valueOf(titleProvider.apply(title)))
-                    .withProperty("icon", icon -> iconProvider == null ? null : getIcon(iconProvider, icon))
-                    .withProperty("iconSrc", icon -> iconSrcProvider == null ? null : getIconSrc(iconSrcProvider, icon))
-	                .withProperty("name",
-	                        value -> String.valueOf(valueProvider.apply(value))));
-				final SerializableComparator<T> comparator = 
-	                (a, b) -> compareMaybeComparables(valueProvider.apply(a),
-	                        valueProvider.apply(b));
-	                column.setComparator(comparator);
-			}
-			
-	        return column;
-	    }
+        private Column<T> setHierarchyColumnWithIcon(
+                ValueProvider<T, ?> valueProvider,
+                ValueProvider<T, VaadinIcon> iconProvider,
+                ValueProvider<T, StreamResource> iconSrcProvider) {
+            Column<T> column = addColumn(TemplateRenderer
+                    .<T> of("<vaadin-grid-tree-toggle "
+                            + "leaf='[[item.leaf]]' expanded='{{expanded}}' level='[[level]]'>"
+                            + "<iron-icon src='[[item.iconSrc]]' icon='[[item.icon]]' style='padding-right: 10px'></iron-icon>"
+                            + "[[item.name]]" + "</vaadin-grid-tree-toggle>")
+                    .withProperty("leaf",
+                            item -> !getDataCommunicator().hasChildren(item))
+                    .withProperty("icon",
+                            icon -> iconProvider == null ? null
+                                    : getIcon(iconProvider, icon))
+                    .withProperty("iconSrc",
+                            icon -> iconSrcProvider == null ? null
+                                    : getIconSrc(iconSrcProvider, icon))
+                    .withProperty("name", value -> String
+                            .valueOf(valueProvider.apply(value))));
+            final SerializableComparator<T> comparator = (a,
+                    b) -> compareMaybeComparables(valueProvider.apply(a),
+                            valueProvider.apply(b));
+            column.setComparator(comparator);
 
-        private String getIconSrc(ValueProvider<T, StreamResource> iconSrcProvider, T icon) {
+            return column;
+        }
+
+        private Column<T> setHierarchyColumnWithTitle(
+                ValueProvider<T, ?> valueProvider,
+                ValueProvider<T, String> titleProvider) {
+            Column<T> column = addColumn(TemplateRenderer
+                    .<T> of("<vaadin-grid-tree-toggle title='[[item.title]]'"
+                            + "leaf='[[item.leaf]]' expanded='{{expanded}}' level='[[level]]'>"
+                            + "[[item.name]]" + "</vaadin-grid-tree-toggle>")
+                    .withProperty("leaf",
+                            item -> !getDataCommunicator().hasChildren(item))
+                    .withProperty("title",
+                            title -> String.valueOf(titleProvider.apply(title)))
+                    .withProperty("name", value -> String
+                            .valueOf(valueProvider.apply(value))));
+            final SerializableComparator<T> comparator = (a,
+                    b) -> compareMaybeComparables(valueProvider.apply(a),
+                            valueProvider.apply(b));
+            column.setComparator(comparator);
+
+            return column;
+        }
+
+        public Column<T> setHierarchyColumn(ValueProvider<T, ?> valueProvider,
+                ValueProvider<T, VaadinIcon> iconProvider,
+                ValueProvider<T, String> titleProvider) {
+            return setHierarchyColumn(valueProvider, iconProvider, null,
+                    titleProvider);
+        }
+
+        public Column<T> setHierarchyColumn(ValueProvider<T, ?> valueProvider,
+                ValueProvider<T, VaadinIcon> iconProvider,
+                ValueProvider<T, StreamResource> iconSrcProvider,
+                ValueProvider<T, String> titleProvider) {
+            removeAllColumns();
+            Column<T> column;
+            if ((iconProvider == null && iconSrcProvider == null)
+                    && (titleProvider == null)) {
+                column = setHierarchyColumn(valueProvider);
+            } else if ((iconProvider != null || iconSrcProvider != null)
+                    && (titleProvider == null)) {
+                column = setHierarchyColumnWithIcon(valueProvider, iconProvider,
+                        iconSrcProvider);
+            } else if ((iconProvider == null && iconSrcProvider == null)
+                    && (titleProvider != null)) {
+                column = setHierarchyColumnWithTitle(valueProvider,
+                        titleProvider);
+            } else {
+                column = addColumn(TemplateRenderer.<T> of(
+                        "<vaadin-grid-tree-toggle title='[[item.title]]'"
+                                + "leaf='[[item.leaf]]' expanded='{{expanded}}' level='[[level]]'>"
+                                + "<iron-icon src='[[item.iconSrc]]' icon='[[item.icon]]' style='height: 15px; padding-right: 10px'></iron-icon>"
+                                + "[[item.name]]"
+                                + "</vaadin-grid-tree-toggle>")
+                        .withProperty("leaf",
+                                item -> !getDataCommunicator()
+                                        .hasChildren(item))
+                        .withProperty("title",
+                                title -> String
+                                        .valueOf(titleProvider.apply(title)))
+                        .withProperty("icon",
+                                icon -> iconProvider == null ? null
+                                        : getIcon(iconProvider, icon))
+                        .withProperty("iconSrc",
+                                icon -> iconSrcProvider == null ? null
+                                        : getIconSrc(iconSrcProvider, icon))
+                        .withProperty("name", value -> String
+                                .valueOf(valueProvider.apply(value))));
+                final SerializableComparator<T> comparator = (a,
+                        b) -> compareMaybeComparables(valueProvider.apply(a),
+                                valueProvider.apply(b));
+                column.setComparator(comparator);
+            }
+
+            return column;
+        }
+
+        private String getIconSrc(
+                ValueProvider<T, StreamResource> iconSrcProvider, T icon) {
             StreamResource streamResource = iconSrcProvider.apply(icon);
             if (streamResource == null) {
                 return null;
-            }
-            else {
+            } else {
                 StreamResourceRegistry resourceRegistry = VaadinSession
                         .getCurrent().getResourceRegistry();
-                registrations.add(resourceRegistry.registerResource(streamResource));
+                registrations
+                        .add(resourceRegistry.registerResource(streamResource));
                 return resourceRegistry.getTargetURI(streamResource).toString();
             }
         }
 
-        private String getIcon(ValueProvider<T, VaadinIcon> iconProvider, T icon) {
+        private String getIcon(ValueProvider<T, VaadinIcon> iconProvider,
+                T icon) {
             VaadinIcon vaadinIcon = iconProvider.apply(icon);
             if (vaadinIcon == null) {
                 return null;
-            }
-            else {
+            } else {
                 return "vaadin:" + fixIconName(String.valueOf(vaadinIcon));
             }
         }
 
         private String fixIconName(String name) {
-	    	String trimmed;
-	    	trimmed = name.toLowerCase();
-	    	trimmed = trimmed.replace("_", "-");
-	    	return trimmed;
-	    }
+            String trimmed;
+            trimmed = name.toLowerCase();
+            trimmed = trimmed.replace("_", "-");
+            return trimmed;
+        }
 
         @Override
         protected void onDetach(DetachEvent detachEvent) {
-		    registrations.forEach(StreamRegistration::unregister);
+            registrations.forEach(StreamRegistration::unregister);
             super.onDetach(detachEvent);
         }
     }
-	
+
     private CustomizedTreeGrid<T> treeGrid = createTreeGrid();
 
     /**
@@ -209,8 +235,8 @@ public class Tree<T> extends Composite<Div>
     private ValueProvider<T, VaadinIcon> iconProvider;
     private ValueProvider<T, StreamResource> iconSrcProvider;
     private ValueProvider<T, ?> valueProvider;
-	private ValueProvider<T, String> titleProvider;
-    
+    private ValueProvider<T, String> titleProvider;
+
     /**
      * Constructs a new Tree Component.
      * 
@@ -218,11 +244,12 @@ public class Tree<T> extends Composite<Div>
      *            the item caption provider to use, not <code>null</code>
      */
     public Tree(ValueProvider<T, ?> valueProvider) {
-    	this.valueProvider = valueProvider;
-        treeGrid.setHierarchyColumn(valueProvider, iconProvider, iconSrcProvider, titleProvider);
+        this.valueProvider = valueProvider;
+        treeGrid.setHierarchyColumn(valueProvider, iconProvider,
+                iconSrcProvider, titleProvider);
         treeGrid.setSelectionMode(SelectionMode.SINGLE);
         treeGrid.addThemeVariants(GridVariant.LUMO_NO_ROW_BORDERS);
-        
+
         treeGrid.setSizeFull();
         treeGrid.addClassName("tree");
         add(treeGrid);
@@ -237,7 +264,7 @@ public class Tree<T> extends Composite<Div>
      *            the tree data for component
      */
     public Tree(TreeData<T> treeData, ValueProvider<T, ?> valueProvider) {
-        this(new TreeDataProvider<>(treeData),valueProvider);
+        this(new TreeDataProvider<>(treeData), valueProvider);
     }
 
     /**
@@ -249,9 +276,10 @@ public class Tree<T> extends Composite<Div>
      * @param dataProvider
      *            the hierarchical data provider for component
      */
-    public Tree(HierarchicalDataProvider<T, ?> dataProvider, ValueProvider<T, ?> valueProvider) {
-    	this(valueProvider);
-    	
+    public Tree(HierarchicalDataProvider<T, ?> dataProvider,
+            ValueProvider<T, ?> valueProvider) {
+        this(valueProvider);
+
         treeGrid.setDataProvider(dataProvider);
     }
 
@@ -274,8 +302,9 @@ public class Tree<T> extends Composite<Div>
      *            the listener to add
      * @return a registration for the listener
      */
-    public Registration addExpandListener(ComponentEventListener<ExpandEvent<T, TreeGrid<T>>> listener) {
-    	return treeGrid.addExpandListener(listener);
+    public Registration addExpandListener(
+            ComponentEventListener<ExpandEvent<T, TreeGrid<T>>> listener) {
+        return treeGrid.addExpandListener(listener);
     }
 
     /**
@@ -287,8 +316,9 @@ public class Tree<T> extends Composite<Div>
      *            the listener to add
      * @return a registration for the listener
      */
-    public Registration addCollapseListener(ComponentEventListener<CollapseEvent<T, TreeGrid<T>>> listener) {
-    	return treeGrid.addCollapseListener(listener);
+    public Registration addCollapseListener(
+            ComponentEventListener<CollapseEvent<T, TreeGrid<T>>> listener) {
+        return treeGrid.addCollapseListener(listener);
     }
 
     /**
@@ -300,7 +330,8 @@ public class Tree<T> extends Composite<Div>
      *            whether the expand was triggered by a user interaction or the
      *            server
      */
-    protected void fireExpandEvent(Collection<T> collection, boolean userOriginated) {    	
+    protected void fireExpandEvent(Collection<T> collection,
+            boolean userOriginated) {
         fireEvent(new ExpandEvent<>(this, userOriginated, collection));
     }
 
@@ -313,7 +344,8 @@ public class Tree<T> extends Composite<Div>
      *            whether the collapse was triggered by a user interaction or
      *            the server
      */
-    protected void fireCollapseEvent(Collection<T> collection, boolean userOriginated) {
+    protected void fireCollapseEvent(Collection<T> collection,
+            boolean userOriginated) {
         fireEvent(new CollapseEvent<>(this, userOriginated, collection));
     }
 
@@ -469,7 +501,8 @@ public class Tree<T> extends Composite<Div>
      *             if selection has been disabled with
      *             {@link SelectionMode#NONE}
      */
-    public Registration addSelectionListener(SelectionListener<Grid<T>, T> listener) {
+    public Registration addSelectionListener(
+            SelectionListener<Grid<T>, T> listener) {
         return treeGrid.addSelectionListener(listener);
     }
 
@@ -512,12 +545,12 @@ public class Tree<T> extends Composite<Div>
      * @param valueProvider
      *            the item caption provider to use, not <code>null</code>
      */
-    public void setItemCaptionProvider(
-    		ValueProvider<T, ?> valueProvider) {
+    public void setItemCaptionProvider(ValueProvider<T, ?> valueProvider) {
         Objects.requireNonNull(valueProvider,
                 "Caption generator must not be null");
         this.valueProvider = valueProvider;
-        treeGrid.setHierarchyColumn(valueProvider, iconProvider, iconSrcProvider, titleProvider);
+        treeGrid.setHierarchyColumn(valueProvider, iconProvider,
+                iconSrcProvider, titleProvider);
         treeGrid.getDataCommunicator().reset();
     }
 
@@ -534,7 +567,8 @@ public class Tree<T> extends Composite<Div>
         Objects.requireNonNull(iconProvider,
                 "Item icon generator must not be null");
         this.iconProvider = iconProvider;
-        treeGrid.setHierarchyColumn(valueProvider, iconProvider, iconSrcProvider, titleProvider);
+        treeGrid.setHierarchyColumn(valueProvider, iconProvider,
+                iconSrcProvider, titleProvider);
         treeGrid.getDataCommunicator().reset();
     }
 
@@ -547,11 +581,13 @@ public class Tree<T> extends Composite<Div>
      * @throws NullPointerException
      *             if {@code itemIconGenerator} is {@code null}
      */
-    public void setItemIconSrcProvider(ValueProvider<T, StreamResource> iconSrcProvider) {
+    public void setItemIconSrcProvider(
+            ValueProvider<T, StreamResource> iconSrcProvider) {
         Objects.requireNonNull(iconSrcProvider,
                 "Item icon src generator must not be null");
         this.iconSrcProvider = iconSrcProvider;
-        treeGrid.setHierarchyColumn(valueProvider, iconProvider, iconSrcProvider, titleProvider);
+        treeGrid.setHierarchyColumn(valueProvider, iconProvider,
+                iconSrcProvider, titleProvider);
         treeGrid.getDataCommunicator().reset();
     }
 
@@ -565,22 +601,23 @@ public class Tree<T> extends Composite<Div>
      * @throws NullPointerException
      *             if {@code styleGenerator} is {@code null}
      */
-    public void setClassNameGenerator(SerializableFunction<T, String> classNameGenerator) {
-    	treeGrid.setClassNameGenerator(classNameGenerator);
+    public void setClassNameGenerator(
+            SerializableFunction<T, String> classNameGenerator) {
+        treeGrid.setClassNameGenerator(classNameGenerator);
     }
 
     /**
-     * Sets the title generator that is used for generating tooltip
-     * descriptions for items.
+     * Sets the title generator that is used for generating tooltip descriptions
+     * for items.
      *
      * @param titleProvider
      *            the item description generator to set, or <code>null</code> to
      *            remove a previously set generator
      */
-    public void setItemTitleProvider(
-    		ValueProvider<T, String> titleProvider) {
-    	this.titleProvider = titleProvider;
-        treeGrid.setHierarchyColumn(valueProvider, iconProvider, iconSrcProvider, titleProvider);
+    public void setItemTitleProvider(ValueProvider<T, String> titleProvider) {
+        this.titleProvider = titleProvider;
+        treeGrid.setHierarchyColumn(valueProvider, iconProvider,
+                iconSrcProvider, titleProvider);
         treeGrid.getDataCommunicator().reset();
     }
 
@@ -637,8 +674,9 @@ public class Tree<T> extends Composite<Div>
      *            the item click listener, not null
      * @return a registration for the listener
      */
-    public Registration addItemClickListener(ComponentEventListener<ItemClickEvent<T>>  listener) {
-    	return treeGrid.addItemClickListener(listener);
+    public Registration addItemClickListener(
+            ComponentEventListener<ItemClickEvent<T>> listener) {
+        return treeGrid.addItemClickListener(listener);
     }
 
     /**
@@ -664,7 +702,7 @@ public class Tree<T> extends Composite<Div>
     }
 
     private SelectionMode getSelectionMode() {
-    	GridSelectionModel<T> selectionModel = getSelectionModel();
+        GridSelectionModel<T> selectionModel = getSelectionModel();
         SelectionMode mode = null;
         if (selectionModel.getClass().equals(GridSingleSelectionModel.class)) {
             mode = SelectionMode.SINGLE;
@@ -700,7 +738,7 @@ public class Tree<T> extends Composite<Div>
     }
 
     public GridContextMenu<T> addContextMenu() {
-    	return treeGrid.addContextMenu();
+        return treeGrid.addContextMenu();
     }
 
     /**
@@ -744,11 +782,12 @@ public class Tree<T> extends Composite<Div>
 
     @Override
     public void focus() {
-    	treeGrid.getElement().executeJs(
-                "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)", treeGrid.getElement());
+        treeGrid.getElement().executeJs(
+                "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)",
+                treeGrid.getElement());
     }
 
     public void setHeightByRows(boolean heightByRows) {
-    	treeGrid.setHeightByRows(heightByRows);
+        treeGrid.setHeightByRows(heightByRows);
     }
 }
