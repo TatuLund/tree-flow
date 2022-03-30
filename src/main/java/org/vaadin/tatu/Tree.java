@@ -726,8 +726,8 @@ public class Tree<T> extends Composite<Div>
         treeGrid.setClassName(style);
     }
 
-    public void removeClassName(String style) {
-        treeGrid.removeClassName(style);
+    public boolean removeClassName(String style) {
+        return treeGrid.removeClassName(style);
     }
 
     @Override

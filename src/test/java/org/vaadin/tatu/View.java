@@ -48,10 +48,10 @@ public class View extends Div {
             if (event.getValue() != null)
                 System.out.println(event.getValue().getName() + " selected");
         });
+        tree.setHeightByRows(true);
 
         // end-source-example
         tree.setId("treegridbasic");
-        tree.setHeightByRows(true);
         setSizeFull();
         tree.addItemClickListener(event -> {
             Notification.show("Click "+event.getItem().getName());
