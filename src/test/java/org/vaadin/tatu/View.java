@@ -4,10 +4,16 @@ import java.util.Collections;
 import java.util.stream.Stream;
 
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.checkbox.Checkbox;
+import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.NativeButton;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextArea;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 
@@ -47,9 +53,25 @@ public class View extends Div {
         tree.setId("treegridbasic");
         tree.setHeightByRows(true);
         setSizeFull();
-        add(withTreeToggleButtons(departmentData.getRootDepartments().get(0),
-                tree, message));
+        tree.addItemClickListener(event -> {
+            Notification.show("Click "+event.getItem().getName());
+        });
 
+        CheckboxGroup<GridVariant> variants = new CheckboxGroup<>();
+        variants.setItems(GridVariant.values());
+        variants.addValueChangeListener(event -> {
+            tree.removeThemeVariants(GridVariant.values());
+            variants.getValue().forEach(variant -> tree.addThemeVariants(variant));
+        });
+
+        TextField height = new TextField("Icon height");
+        height.addValueChangeListener(event -> {
+            tree.getElement().getStyle().set("--tree-icon-height",event.getValue());
+        });
+
+        add(withTreeToggleButtons(departmentData.getRootDepartments().get(0),
+                tree, message, variants, height));
+        
         Tree<Department> treeWithoutIconSrcProvider = new Tree<>(
                 Department::getName);
         treeWithoutIconSrcProvider.setHeightByRows(true);

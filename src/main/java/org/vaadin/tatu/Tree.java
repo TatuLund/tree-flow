@@ -14,6 +14,7 @@ import com.vaadin.flow.component.Focusable;
 import com.vaadin.flow.component.HasComponents;
 import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.HasSize;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.SelectionMode;
 import com.vaadin.flow.component.grid.GridMultiSelectionModel;
@@ -56,6 +57,8 @@ import com.vaadin.flow.shared.Registration;
  * @param <T>
  *            the data type
  */
+// @CssImport(value = "./tree-styles.css", themeFor = "vaadin-grid")
+@CssImport(value = "./grid-tree-toggle-adjust.css", themeFor = "vaadin-grid-tree-toggle")
 public class Tree<T> extends Composite<Div>
         implements HasHierarchicalDataProvider<T>, Focusable, HasComponents,
         HasSize, HasElement {
@@ -88,7 +91,7 @@ public class Tree<T> extends Composite<Div>
             Column<T> column = addColumn(TemplateRenderer
                     .<T> of("<vaadin-grid-tree-toggle "
                             + "leaf='[[item.leaf]]' expanded='{{expanded}}' level='[[level]]'>"
-                            + "<iron-icon src='[[item.iconSrc]]' icon='[[item.icon]]' style='padding-right: 10px'></iron-icon>"
+                            + "<iron-icon src='[[item.iconSrc]]' icon='[[item.icon]]' style='height: var(--tree-icon-height, 15px); padding-right: 10px'></iron-icon>"
                             + "[[item.name]]" + "</vaadin-grid-tree-toggle>")
                     .withProperty("leaf",
                             item -> !getDataCommunicator().hasChildren(item))
@@ -157,7 +160,7 @@ public class Tree<T> extends Composite<Div>
                 column = addColumn(TemplateRenderer.<T> of(
                         "<vaadin-grid-tree-toggle title='[[item.title]]'"
                                 + "leaf='[[item.leaf]]' expanded='{{expanded}}' level='[[level]]'>"
-                                + "<iron-icon src='[[item.iconSrc]]' icon='[[item.icon]]' style='height: 15px; padding-right: 10px'></iron-icon>"
+                                + "<iron-icon src='[[item.iconSrc]]' icon='[[item.icon]]' style='height: var(--tree-icon-height, 15px); padding-right: 10px'></iron-icon>"
                                 + "[[item.name]]"
                                 + "</vaadin-grid-tree-toggle>")
                         .withProperty("leaf",
@@ -789,5 +792,13 @@ public class Tree<T> extends Composite<Div>
 
     public void setHeightByRows(boolean heightByRows) {
         treeGrid.setHeightByRows(heightByRows);
+    }
+
+    public void addThemeVariants(GridVariant... gridVariants) {
+        treeGrid.addThemeVariants(gridVariants);
+    }
+
+    public void removeThemeVariants(GridVariant... gridVariants) {
+        treeGrid.removeThemeVariants(gridVariants);
     }
 }
