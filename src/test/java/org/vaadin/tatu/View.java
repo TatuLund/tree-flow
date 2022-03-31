@@ -79,6 +79,14 @@ public class View extends Div {
                 departmentData::getChildDepartments);
         treeWithoutIconSrcProvider.setItemIconProvider(item -> getIcon(item));
         add(treeWithoutIconSrcProvider);
+        
+        Tree<Department> treeWithHtmlProvider = new Tree<>(
+                Department::getName);
+        treeWithHtmlProvider.setHeightByRows(true);
+        treeWithHtmlProvider.setItems(departmentData.getRootDepartments(),
+                departmentData::getChildDepartments);
+        treeWithHtmlProvider.setHtmlProvider(item -> "<b style=\"steelblue: red\">"+item.getName()+":</b> <i style=\"color: brown\">"+item.getManager()+"</i>");
+        add(treeWithHtmlProvider);
     }
 
     private StreamResource getImageIconSrc(Department item) {

@@ -7,6 +7,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.safety.Safelist;
+
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.DetachEvent;
@@ -76,6 +80,24 @@ public class Tree<T> extends Composite<Div>
                             item -> !getDataCommunicator().hasChildren(item))
                     .withProperty("name", value -> String
                             .valueOf(valueProvider.apply(value))));
+            final SerializableComparator<T> comparator = (a,
+                    b) -> compareMaybeComparables(valueProvider.apply(a),
+                            valueProvider.apply(b));
+            column.setComparator(comparator);
+
+            return column;
+        }
+
+        private Column<T> setHierarchyColumnWithHtml(
+                ValueProvider<T, ?> valueProvider) {
+            Column<T> column = addColumn(TemplateRenderer
+                    .<T> of("<vaadin-grid-tree-toggle "
+                            + "leaf='[[item.leaf]]' expanded='{{expanded}}' level='[[level]]' inner-h-t-m-l=\"[[item.html]]\">"
+                            + "[[item.name]]" + "</vaadin-grid-tree-toggle>")
+                    .withProperty("leaf",
+                            item -> !getDataCommunicator().hasChildren(item))
+                    .withProperty("html", value -> sanitize(
+                            String.valueOf(valueProvider.apply(value)))));
             final SerializableComparator<T> comparator = (a,
                     b) -> compareMaybeComparables(valueProvider.apply(a),
                             valueProvider.apply(b));
@@ -221,6 +243,15 @@ public class Tree<T> extends Composite<Div>
         protected void onDetach(DetachEvent detachEvent) {
             registrations.forEach(StreamRegistration::unregister);
             super.onDetach(detachEvent);
+        }
+
+        public String sanitize(String html) {
+            Safelist safelist = Safelist.relaxed()
+                    .addAttributes(":all", "style")
+                    .addEnforcedAttribute("a", "rel", "nofollow");
+            String sanitized = Jsoup.clean(html, "", safelist,
+                    new Document.OutputSettings().prettyPrint(false));
+            return sanitized;
         }
     }
 
@@ -538,6 +569,24 @@ public class Tree<T> extends Composite<Div>
      */
     public GridSelectionModel<T> getSelectionModel() {
         return treeGrid.getSelectionModel();
+    }
+
+    /**
+     * Sets the item generator that is used to produce the html content shown
+     * for each item. By default, {@link String#valueOf(Object)} is
+     * used.
+     * <p>
+     * Note: This will override icon, title and value provider settings.
+     *
+     * @param htmlProvider
+     *            the item html provider to use, not <code>null</code>
+     */
+    public void setHtmlProvider(ValueProvider<T, ?> htmlProvider) {
+        treeGrid.removeAllColumns();
+        Objects.requireNonNull(valueProvider,
+                "Caption generator must not be null");
+        treeGrid.setHierarchyColumnWithHtml(htmlProvider);
+        treeGrid.getDataCommunicator().reset();
     }
 
     /**
