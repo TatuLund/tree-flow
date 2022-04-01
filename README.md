@@ -7,6 +7,20 @@ Vaadin 14 Java version of Tree component
 
 ## Release notes
 
+### Version 1.4.0
+
+- Added htmlProvider
+
+### Version 1.3.1
+
+- Fixed removeClassName
+
+### Version 1.3.0
+
+- Control icon size by --tree-icon-height custom property
+- Added addThemeVariants / removeThemeVariants
+- Toggle expand/collapse only with button
+
 ### Version 1.2.0
 
 - Added support for image icons
