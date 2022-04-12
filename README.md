@@ -7,6 +7,10 @@ Vaadin 14 Java version of Tree component
 
 ## Release notes
 
+### Version 1.4.1
+
+- Add setSanitize method to disable html sanitation
+
 ### Version 1.4.0
 
 - Added htmlProvider

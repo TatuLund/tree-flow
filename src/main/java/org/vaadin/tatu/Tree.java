@@ -244,15 +244,6 @@ public class Tree<T> extends Composite<Div>
             registrations.forEach(StreamRegistration::unregister);
             super.onDetach(detachEvent);
         }
-
-        public String sanitize(String html) {
-            Safelist safelist = Safelist.relaxed()
-                    .addAttributes(":all", "style")
-                    .addEnforcedAttribute("a", "rel", "nofollow");
-            String sanitized = Jsoup.clean(html, "", safelist,
-                    new Document.OutputSettings().prettyPrint(false));
-            return sanitized;
-        }
     }
 
     private CustomizedTreeGrid<T> treeGrid = createTreeGrid();
@@ -270,6 +261,7 @@ public class Tree<T> extends Composite<Div>
     private ValueProvider<T, StreamResource> iconSrcProvider;
     private ValueProvider<T, ?> valueProvider;
     private ValueProvider<T, String> titleProvider;
+    private boolean sanitize = true;
 
     /**
      * Constructs a new Tree Component.
@@ -849,5 +841,29 @@ public class Tree<T> extends Composite<Div>
 
     public void removeThemeVariants(GridVariant... gridVariants) {
         treeGrid.removeThemeVariants(gridVariants);
+    }
+
+    /**
+     * By default html content is sanitized, if you have custom web components
+     * to or other offending content that you want to render, set to false.
+     * 
+     * @param sanitize
+     *            Enable / disable html sanitation.
+     */
+    public void setSanitize(boolean sanitize) {
+        this.sanitize  = sanitize;
+    }
+
+    private String sanitize(String html) {
+        if (sanitize) {
+        Safelist safelist = Safelist.relaxed()
+                .addAttributes(":all", "style")
+                .addEnforcedAttribute("a", "rel", "nofollow");
+        String sanitized = Jsoup.clean(html, "", safelist,
+                new Document.OutputSettings().prettyPrint(false));
+        return sanitized;
+        } else {
+            return html;
+        }
     }
 }
