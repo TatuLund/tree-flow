@@ -6,6 +6,7 @@ import java.util.stream.Stream;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.NativeButton;
@@ -18,6 +19,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 
 @Route("")
+@CssImport(value = "./vaadin-grid-tree-toggle.css", themeFor = "vaadin-grid-tree-toggle")
 public class View extends Div {
 
     public View() {
@@ -83,6 +85,7 @@ public class View extends Div {
         Tree<Department> treeWithHtmlProvider = new Tree<>(
                 Department::getName);
         treeWithHtmlProvider.setHeightByRows(true);
+        treeWithHtmlProvider.addThemeName("large");
         treeWithHtmlProvider.setItems(departmentData.getRootDepartments(),
                 departmentData::getChildDepartments);
         treeWithHtmlProvider.setHtmlProvider(item -> "<b style=\"steelblue: red\">"+item.getName()+":</b> <i style=\"color: brown\">"+item.getManager()+"</i>");
