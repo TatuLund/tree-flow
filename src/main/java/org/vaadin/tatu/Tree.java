@@ -2,16 +2,19 @@ package org.vaadin.tatu;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.safety.Safelist;
 
 import com.vaadin.flow.component.ComponentEventListener;
+import com.vaadin.flow.component.ComponentUtil;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Focusable;
@@ -24,9 +27,7 @@ import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.Grid.SelectionMode;
-import com.vaadin.flow.component.grid.GridMultiSelectionModel;
 import com.vaadin.flow.component.grid.GridSelectionModel;
-import com.vaadin.flow.component.grid.GridSingleSelectionModel;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.grid.ItemClickEvent;
 import com.vaadin.flow.component.grid.contextmenu.GridContextMenu;
@@ -46,7 +47,6 @@ import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
 import com.vaadin.flow.data.renderer.TemplateRenderer;
 import com.vaadin.flow.data.selection.MultiSelect;
-import com.vaadin.flow.data.selection.SelectionListener;
 import com.vaadin.flow.data.selection.SelectionModel;
 import com.vaadin.flow.data.selection.SingleSelect;
 import com.vaadin.flow.dom.ThemeList;
@@ -303,6 +303,9 @@ public class Tree<T> extends Composite<Div>
     private ValueProvider<T, ?> valueProvider;
     private ValueProvider<T, String> titleProvider;
     private boolean sanitize = true;
+    private boolean selectOnlyLeafs;
+    private SelectionMode selectionMode;
+    private T oldValue;
 
     /**
      * Constructs a new Tree Component.
@@ -314,11 +317,56 @@ public class Tree<T> extends Composite<Div>
         this.valueProvider = valueProvider;
         treeGrid.setHierarchyColumn(valueProvider, iconProvider,
                 iconSrcProvider, titleProvider);
-        treeGrid.setSelectionMode(SelectionMode.SINGLE);
+        setSelectionMode(SelectionMode.SINGLE);
         treeGrid.addThemeVariants(GridVariant.LUMO_NO_ROW_BORDERS);
 
         treeGrid.setSizeFull();
         treeGrid.addClassName("tree");
+        treeGrid.addSelectionListener(e -> {
+            Set<T> value = Collections.emptySet();
+            T item = oldValue;
+            if (selectOnlyLeafs) {
+                if (selectionMode == SelectionMode.MULTI) {
+                    value = e.getAllSelectedItems().stream().filter(
+                            i -> !treeGrid.getDataCommunicator().hasChildren(i))
+                            .collect(Collectors.toSet());
+                    boolean fireEvent = (value.size() == e.getAllSelectedItems()
+                            .size());
+                    treeGrid.deselectAll();
+                    value.forEach(i -> treeGrid.select(i));
+                    if (fireEvent) {
+                        fireEvent(new SelectionChangedEvent<>(this, value,
+                                e.isFromClient()));
+                    }
+                } else if (e.getFirstSelectedItem().isPresent()) {
+                    item = !treeGrid.getDataCommunicator()
+                            .hasChildren(e.getFirstSelectedItem().get())
+                                    ? e.getFirstSelectedItem().get()
+                                    : null;
+                    if (item == null) {
+                        treeGrid.select(oldValue);
+                    } else {
+                        value = Set.of(item);
+                        oldValue = item;
+                        if (e.isFromClient()) {
+                            fireEvent(new SelectionChangedEvent<>(this, value,
+                                    e.isFromClient()));
+                        }
+                    }
+                }
+            } else {
+                if (selectionMode == SelectionMode.MULTI) {
+                    value = e.getAllSelectedItems().stream()
+                            .collect(Collectors.toSet());
+                } else if (e.getFirstSelectedItem().isPresent()) {
+                    item = e.getFirstSelectedItem().get();
+                    oldValue = item;
+                    value = Set.of(item);
+                }
+                fireEvent(new SelectionChangedEvent<>(this, value,
+                        e.isFromClient()));
+            }
+        });
         add(treeGrid);
     }
 
@@ -569,8 +617,10 @@ public class Tree<T> extends Composite<Div>
      *             {@link SelectionMode#NONE}
      */
     public Registration addSelectionListener(
-            SelectionListener<Grid<T>, T> listener) {
-        return treeGrid.addSelectionListener(listener);
+            ComponentEventListener<SelectionChangedEvent<T, Tree<T>>> listener) {
+        Objects.requireNonNull(listener, "listener cannot be null");
+        return ComponentUtil.addListener(this, SelectionChangedEvent.class,
+                (ComponentEventListener) listener);
     }
 
     /**
@@ -606,8 +656,7 @@ public class Tree<T> extends Composite<Div>
 
     /**
      * Sets the item generator that is used to produce the html content shown
-     * for each item. By default, {@link String#valueOf(Object)} is
-     * used.
+     * for each item. By default, {@link String#valueOf(Object)} is used.
      * <p>
      * Note: This will override icon, title and value provider settings.
      *
@@ -783,21 +832,8 @@ public class Tree<T> extends Composite<Div>
     public GridSelectionModel<T> setSelectionMode(SelectionMode selectionMode) {
         Objects.requireNonNull(selectionMode,
                 "Can not set selection mode to null");
+        this.selectionMode = selectionMode;
         return treeGrid.setSelectionMode(selectionMode);
-    }
-
-    private SelectionMode getSelectionMode() {
-        GridSelectionModel<T> selectionModel = getSelectionModel();
-        SelectionMode mode = null;
-        if (selectionModel.getClass().equals(GridSingleSelectionModel.class)) {
-            mode = SelectionMode.SINGLE;
-        } else if (selectionModel.getClass()
-                .equals(GridMultiSelectionModel.class)) {
-            mode = SelectionMode.MULTI;
-        } else {
-            mode = SelectionMode.NONE;
-        }
-        return mode;
     }
 
     /**
@@ -891,7 +927,7 @@ public class Tree<T> extends Composite<Div>
     @Override
     public void focus() {
         treeGrid.getElement().executeJs(
-                "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.click(); firstTd.focus(); },0)",
+                "setTimeout(function(){let firstTd = $0.shadowRoot.querySelector('tr:first-child > td:first-child'); firstTd.focus(); },0)",
                 treeGrid.getElement());
     }
 
@@ -922,7 +958,7 @@ public class Tree<T> extends Composite<Div>
         return treeGrid.getElement().getAttribute("theme");
     }
 
-    @Override 
+    @Override
     public ThemeList getThemeNames() {
         return treeGrid.getThemeNames();
     }
@@ -940,17 +976,17 @@ public class Tree<T> extends Composite<Div>
 
     private String sanitize(String html) {
         if (sanitize) {
-        Safelist safelist = Safelist.relaxed()
-                .addAttributes(":all", "style")
-                .addEnforcedAttribute("a", "rel", "nofollow");
-        String sanitized = Jsoup.clean(html, "", safelist,
-                new Document.OutputSettings().prettyPrint(false));
-        return sanitized;
+            Safelist safelist = Safelist.relaxed()
+                    .addAttributes(":all", "style")
+                    .addEnforcedAttribute("a", "rel", "nofollow");
+            String sanitized = Jsoup.clean(html, "", safelist,
+                    new Document.OutputSettings().prettyPrint(false));
+            return sanitized;
         } else {
             return html;
         }
     }
- 
+
     /**
      * Sets the drop mode of this drop target. When set to not {@code null},
      * tree fires drop events upon data drop over the tree or the tree rows.
@@ -970,11 +1006,11 @@ public class Tree<T> extends Composite<Div>
      * any row, but instead just "on the tree". The target row will not be
      * present in this case.
      * <p>
-     * NOTE: Prefer not using a row specific GridDropMode with a
-     * tree that enables sorting. If for example a new row gets added to a
-     * specific location on drop event, it might not end up in the location of
-     * the drop but rather where the active sorting configuration prefers to
-     * place it. This behavior might feel unexpected for the users.
+     * NOTE: Prefer not using a row specific GridDropMode with a tree that
+     * enables sorting. If for example a new row gets added to a specific
+     * location on drop event, it might not end up in the location of the drop
+     * but rather where the active sorting configuration prefers to place it.
+     * This behavior might feel unexpected for the users.
      *
      * @param dropMode
      *            Drop mode that describes the allowed drop locations within the
@@ -1024,7 +1060,8 @@ public class Tree<T> extends Composite<Div>
      *            the listener to add, not <code>null</code>
      * @return a handle that can be used for removing the listener
      */
-    public Registration addDragStartListener(ComponentEventListener<GridDragStartEvent<T>> listener) {
+    public Registration addDragStartListener(
+            ComponentEventListener<GridDragStartEvent<T>> listener) {
         return treeGrid.addDragStartListener(listener);
     }
 
@@ -1035,7 +1072,8 @@ public class Tree<T> extends Composite<Div>
      *            the listener to add, not <code>null</code>
      * @return a handle that can be used for removing the listener
      */
-    public Registration addDropListener(ComponentEventListener<GridDropEvent<T>> listener) {
+    public Registration addDropListener(
+            ComponentEventListener<GridDropEvent<T>> listener) {
         return treeGrid.addDropListener(listener);
     }
 
@@ -1046,7 +1084,21 @@ public class Tree<T> extends Composite<Div>
      *            the listener to add, not <code>null</code>
      * @return a handle that can be used for removing the listener
      */
-    public Registration addDragEndListener(ComponentEventListener<GridDragEndEvent<T>> listener) {
+    public Registration addDragEndListener(
+            ComponentEventListener<GridDragEndEvent<T>> listener) {
         return treeGrid.addDragEndListener(listener);
+    }
+
+    /**
+     * When true, only selecting leafs is accepted. Also SelectionChangedEvent
+     * is not fired if non-leaf node is clicked.
+     * <p>
+     * Note: asSingleSelect and asMultiSelect pass thru API's are not affected.
+     * 
+     * @param selectOnlyLeafs
+     *            boolean value.
+     */
+    public void setSelectOnlyLeafs(boolean selectOnlyLeafs) {
+        this.selectOnlyLeafs = selectOnlyLeafs;
     }
 }

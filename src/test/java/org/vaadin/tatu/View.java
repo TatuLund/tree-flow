@@ -1,6 +1,7 @@
 package org.vaadin.tatu;
 
 import java.util.Collections;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.vaadin.flow.component.Component;
@@ -43,9 +44,13 @@ public class View extends Div implements AppShellConfigurator {
                 String.format("Collapsed %s item(s)", event.getItems().size())
                         + "\n" + message.getValue()));
 
-        tree.asSingleSelect().addValueChangeListener(event -> {
-            if (event.getValue() != null)
-                System.out.println(event.getValue().getName() + " selected");
+        tree.setSelectOnlyLeafs(true);
+        tree.addSelectionListener(e -> {
+            if (!e.getSelected().isEmpty()) {
+                System.out.println(
+                        e.getSelected().stream().map(d -> d.getName()).collect(
+                                Collectors.joining(",")) + " selected");
+            }
         });
         tree.setHeightByRows(true);
 
@@ -53,24 +58,26 @@ public class View extends Div implements AppShellConfigurator {
         tree.setId("treegridbasic");
         setSizeFull();
         tree.addItemClickListener(event -> {
-            Notification.show("Click "+event.getItem().getName());
+            Notification.show("Click " + event.getItem().getName());
         });
 
         CheckboxGroup<GridVariant> variants = new CheckboxGroup<>();
         variants.setItems(GridVariant.values());
         variants.addValueChangeListener(event -> {
             tree.removeThemeVariants(GridVariant.values());
-            variants.getValue().forEach(variant -> tree.addThemeVariants(variant));
+            variants.getValue()
+                    .forEach(variant -> tree.addThemeVariants(variant));
         });
 
         TextField height = new TextField("Icon height");
         height.addValueChangeListener(event -> {
-            tree.getElement().getStyle().set("--lumo-icon-size-m",event.getValue());
+            tree.getElement().getStyle().set("--lumo-icon-size-m",
+                    event.getValue());
         });
 
         add(withTreeToggleButtons(departmentData.getRootDepartments().get(0),
                 tree, message, variants, height));
-        
+
         Tree<Department> treeWithoutIconSrcProvider = new Tree<>(
                 Department::getName);
         treeWithoutIconSrcProvider.setHeightByRows(true);
@@ -78,13 +85,15 @@ public class View extends Div implements AppShellConfigurator {
                 departmentData::getChildDepartments);
         treeWithoutIconSrcProvider.setItemIconProvider(item -> getIcon(item));
         add(treeWithoutIconSrcProvider);
-        
-        Tree<Department> treeWithHtmlProvider = new Tree<>(
-                Department::getName);
+
+        Tree<Department> treeWithHtmlProvider = new Tree<>(Department::getName);
         treeWithHtmlProvider.setHeightByRows(true);
         treeWithHtmlProvider.setItems(departmentData.getRootDepartments(),
                 departmentData::getChildDepartments);
-        treeWithHtmlProvider.setHtmlProvider(item -> "<b style=\"steelblue: red\">"+item.getName()+":</b> <i style=\"color: brown\">"+item.getManager()+"</i>");
+        treeWithHtmlProvider
+                .setHtmlProvider(item -> "<b style=\"steelblue: red\">"
+                        + item.getName() + ":</b> <i style=\"color: brown\">"
+                        + item.getManager() + "</i>");
         add(treeWithHtmlProvider);
     }
 
