@@ -793,8 +793,8 @@ public class Tree<T> extends Composite<Div>
      *            a space-separated string of class names to set, or
      *            <code>null</code> to remove all class names
      */
-    public void setClassName(String style) {
-        treeGrid.setClassName(style);
+    public void setClassName(String className) {
+        treeGrid.setClassName(className);
     }
 
     /**
@@ -806,8 +806,8 @@ public class Tree<T> extends Composite<Div>
      *         <code>false</code> if the class list didn't contain the class
      *         name
      */
-    public boolean removeClassName(String style) {
-        return treeGrid.removeClassName(style);
+    public boolean removeClassName(String className) {
+        return treeGrid.removeClassName(className);
     }
 
     @Override
@@ -940,7 +940,7 @@ public class Tree<T> extends Composite<Div>
      * any row, but instead just "on the tree". The target row will not be
      * present in this case.
      * <p>
-     * <em>NOTE: Prefer not using a row specific {@link GridDropMode} with a
+     * NOTE: Prefer not using a row specific {@link GridDropMode} with a
      * tree that enables sorting. If for example a new row gets added to a
      * specific location on drop event, it might not end up in the location of
      * the drop but rather where the active sorting configuration prefers to
@@ -969,7 +969,7 @@ public class Tree<T> extends Composite<Div>
     /**
      * Sets whether the user can drag the tree rows or not.
      *
-     * @param rowsRraggable
+     * @param rowsDrraggable
      *            {@code true} if the rows can be dragged by the user;
      *            {@code false} if not
      */
