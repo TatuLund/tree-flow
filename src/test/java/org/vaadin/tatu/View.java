@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.checkbox.CheckboxGroup;
+import com.vaadin.flow.component.grid.Grid.SelectionMode;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.NativeButton;
@@ -82,6 +83,7 @@ public class View extends Div implements AppShellConfigurator {
         Tree<Department> treeWithHtmlProvider = new Tree<>(
                 Department::getName);
         treeWithHtmlProvider.setAllRowsVisible(true);
+        treeWithHtmlProvider.setSelectionMode(SelectionMode.SINGLE);
         treeWithHtmlProvider.setItems(departmentData.getRootDepartments(),
                 departmentData::getChildDepartments);
         treeWithHtmlProvider.setHtmlProvider(item -> "<b style=\"steelblue: red\">"+item.getName()+":</b> <i style=\"color: brown\">"+item.getManager()+"</i>");

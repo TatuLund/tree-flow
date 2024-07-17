@@ -24,7 +24,9 @@ import com.vaadin.flow.component.HasElement;
 import com.vaadin.flow.component.HasSize;
 import com.vaadin.flow.component.HasTheme;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.grid.Grid.Column;
 import com.vaadin.flow.component.grid.Grid.SelectionMode;
 import com.vaadin.flow.component.grid.GridSelectionModel;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -68,7 +70,8 @@ import com.vaadin.flow.shared.Registration;
  * @param <T>
  *            the data type
  */
-@CssImport(value = "./grid-tree-toggle-adjust.css", themeFor = "vaadin-grid-tree-toggle")
+@CssImport(value = "./grid-tree-toggle-adjust.css", themeFor = "custom-grid-tree-toggle")
+@JsModule("./custom-grid-tree-toggle.js")
 public class Tree<T> extends Composite<Div>
         implements HasHierarchicalDataProvider<T>, Focusable, HasComponents,
         HasSize, HasElement, HasTheme {
@@ -78,17 +81,23 @@ public class Tree<T> extends Composite<Div>
 
         private Column<T> setHierarchyColumn(
                 ValueProvider<T, ?> valueProvider) {
-            Column<T> column = addColumn(LitRenderer
-                    .<T> of("<vaadin-grid-tree-toggle @click=${onClick} "
+            Column<T> column = addColumn(LitRenderer.<T> of(
+                    "<custom-grid-tree-toggle @click=${onClick} @doselect=${onSelect} "
                             + "theme=${item.theme} "
                             + ".leaf=${item.leaf} .expanded=${model.expanded} .level=${model.level}>"
-                            + "${item.name}" + "</vaadin-grid-tree-toggle>")
+                            + "${item.name}" + "</custom-grid-tree-toggle>")
                     .withProperty("theme", item -> getThemeName())
                     .withProperty("leaf",
                             item -> !getDataCommunicator().hasChildren(item))
                     .withProperty("name",
                             value -> String.valueOf(valueProvider.apply(value)))
-                    .withFunction("onClick", item -> {
+                    .withFunction("onSelect", item -> {
+                        if (getSelectedItems().contains(item)) {
+                            deselect(item);
+                        } else {
+                            select(item);
+                        }
+                    }).withFunction("onClick", item -> {
                         if (getDataCommunicator().hasChildren(item)) {
                             if (isExpanded(item)) {
                                 collapse(List.of(item), true);
@@ -107,18 +116,24 @@ public class Tree<T> extends Composite<Div>
 
         private Column<T> setHierarchyColumnWithHtml(
                 ValueProvider<T, ?> valueProvider) {
-            Column<T> column = addColumn(LitRenderer
-                    .<T> of("<vaadin-grid-tree-toggle @click=${onClick} "
+            Column<T> column = addColumn(LitRenderer.<T> of(
+                    "<custom-grid-tree-toggle @click=${onClick} @doselect=${onSelect} "
                             + "theme=${item.theme} "
                             + ".leaf=${item.leaf} .expanded=${model.expanded} .level=${model.level} .innerHTML=${item.html}>"
-                            + "</vaadin-grid-tree-toggle>")
+                            + "</custom-grid-tree-toggle>")
                     .withProperty("theme", item -> Tree.this.getThemeName())
                     .withProperty("leaf",
                             item -> !getDataCommunicator().hasChildren(item))
                     .withProperty("html",
                             value -> sanitize(
                                     String.valueOf(valueProvider.apply(value))))
-                    .withFunction("onClick", item -> {
+                    .withFunction("onSelect", item -> {
+                        if (getSelectedItems().contains(item)) {
+                            deselect(item);
+                        } else {
+                            select(item);
+                        }
+                    }).withFunction("onClick", item -> {
                         if (getDataCommunicator().hasChildren(item)) {
                             if (isExpanded(item)) {
                                 collapse(List.of(item), true);
@@ -139,13 +154,13 @@ public class Tree<T> extends Composite<Div>
                 ValueProvider<T, ?> valueProvider,
                 ValueProvider<T, VaadinIcon> iconProvider,
                 ValueProvider<T, StreamResource> iconSrcProvider) {
-            Column<T> column = addColumn(LitRenderer
-                    .<T> of("<vaadin-grid-tree-toggle @click=${onClick} "
+            Column<T> column = addColumn(LitRenderer.<T> of(
+                    "<custom-grid-tree-toggle @click=${onClick} @doselect=${onSelect} "
                             + "theme=${item.theme} "
                             + ".leaf=${item.leaf} .expanded=${model.expanded} .level=${model.level}>"
                             + "<vaadin-icon style=${item.hasNoImage} padding-right: 10px' src=${item.iconSrc}></vaadin-icon>"
                             + "<vaadin-icon style='${item.hasNoIcon} padding-right: 10px' icon=${item.icon}></vaadin-icon>"
-                            + "${item.name}" + "</vaadin-grid-tree-toggle>")
+                            + "${item.name}" + "</custom-grid-tree-toggle>")
                     .withProperty("theme", item -> Tree.this.getThemeName())
                     .withProperty("leaf",
                             item -> !getDataCommunicator().hasChildren(item))
@@ -167,7 +182,13 @@ public class Tree<T> extends Composite<Div>
                                                     : null)
                     .withProperty("name",
                             value -> String.valueOf(valueProvider.apply(value)))
-                    .withFunction("onClick", item -> {
+                    .withFunction("onSelect", item -> {
+                        if (getSelectedItems().contains(item)) {
+                            deselect(item);
+                        } else {
+                            select(item);
+                        }
+                    }).withFunction("onClick", item -> {
                         if (getDataCommunicator().hasChildren(item)) {
                             if (isExpanded(item)) {
                                 collapse(List.of(item), true);
@@ -188,11 +209,11 @@ public class Tree<T> extends Composite<Div>
                 ValueProvider<T, ?> valueProvider,
                 ValueProvider<T, String> tooltipProvider) {
             Column<T> column = addColumn(LitRenderer.<T> of(
-                    "<vaadin-grid-tree-toggle id=${item.key} @click=${onClick} "
+                    "<custom-grid-tree-toggle id=${item.key} @click=${onClick} @doselect=${onSelect} "
                             + "theme=${item.theme} "
                             + ".leaf=${item.leaf} .expanded=${model.expanded} .level=${model.level}>"
                             + "${item.name}"
-                            + "<vaadin-tooltip for=${item.key} text=${item.tooltip}></vaadin-tooltip></vaadin-grid-tree-toggle>")
+                            + "<vaadin-tooltip for=${item.key} text=${item.tooltip}></vaadin-tooltip></custom-grid-tree-toggle>")
                     .withProperty("key", item -> randomId("tooltip", 10))
                     .withProperty("theme", item -> Tree.this.getThemeName())
                     .withProperty("leaf",
@@ -202,7 +223,13 @@ public class Tree<T> extends Composite<Div>
                                     .valueOf(tooltipProvider.apply(tooltip)))
                     .withProperty("name",
                             value -> String.valueOf(valueProvider.apply(value)))
-                    .withFunction("onClick", item -> {
+                    .withFunction("onSelect", item -> {
+                        if (getSelectedItems().contains(item)) {
+                            deselect(item);
+                        } else {
+                            select(item);
+                        }
+                    }).withFunction("onClick", item -> {
                         if (getDataCommunicator().hasChildren(item)) {
                             if (isExpanded(item)) {
                                 collapse(List.of(item), true);
@@ -252,12 +279,12 @@ public class Tree<T> extends Composite<Div>
                         tooltipProvider);
             } else {
                 column = addColumn(LitRenderer.<T> of(
-                        "<vaadin-grid-tree-toggle id=${item.key} @click=${onClick} "
+                        "<custom-grid-tree-toggle id=${item.key} @click=${onClick} "
                                 + ".leaf=${item.leaf} .expanded=${model.expanded} .level=${model.level}>"
                                 + "<vaadin-icon style='${item.hasNoImage} padding-right: 10px' src=${item.iconSrc}></vaadin-icon>"
                                 + "<vaadin-icon style='${item.hasNoIcon} padding-right: 10px' icon=${item.icon}></vaadin-icon>"
                                 + "${item.name}"
-                                + "<vaadin-tooltip for=${item.key} text=${item.tooltip}></vaadin-tooltip></vaadin-grid-tree-toggle>")
+                                + "<vaadin-tooltip for=${item.key} text=${item.tooltip}></vaadin-tooltip></custom-grid-tree-toggle>")
                         .withProperty("key", item -> randomId("tooltip", 10))
                         .withProperty("leaf",
                                 item -> !getDataCommunicator()
@@ -411,7 +438,7 @@ public class Tree<T> extends Composite<Div>
                     }
                 } else {
                     fireEvent(new SelectionChangedEvent<>(this, value,
-                            e.isFromClient()));                    
+                            e.isFromClient()));
                 }
             } else {
                 if (selectionMode == SelectionMode.MULTI) {
@@ -1174,5 +1201,37 @@ public class Tree<T> extends Composite<Div>
      */
     public void setSelectOnlyLeafs(boolean selectOnlyLeafs) {
         this.selectOnlyLeafs = selectOnlyLeafs;
+    }
+
+    /**
+     * Scrolls to a nested item within the tree.
+     * <p>
+     * The `indexes` parameter can be either a single number or multiple
+     * numbers. The tree will first try to scroll to the item at the first index
+     * in the root level of the tree. In case the item at the first index is
+     * expanded, the tree will then try scroll to the item at the second index
+     * within the children of the expanded first item, and so on. Each given
+     * index points to a child of the item at the previous index.
+     *
+     * @param indexes
+     *            zero based row indexes to scroll to
+     */
+    public void scrollToIndex(int... indexes) {
+        this.treeGrid.scrollToIndex(indexes);
+    }
+    
+    /**
+     * Sets the function that is used for generating CSS part names for all the
+     * cells in the rows in this tree. Returning {@code null} from the generator
+     * results in no custom part name being set. Multiple part names can be
+     * returned from the generator as space-separated.
+     * <p>
+     * @param partNameGenerator
+     *            the part name generator to set, not {@code null}
+     * @throws NullPointerException
+     *             if {@code partNameGenerator} is {@code null}
+     */    
+    public void setPartNameGenerator(SerializableFunction<T, String> partNameGenerator) {
+        this.treeGrid.setPartNameGenerator(partNameGenerator);
     }
 }
