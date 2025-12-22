@@ -44,8 +44,10 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.data.provider.hierarchy.HasHierarchicalDataProvider;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataCommunicator;
 import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalQuery;
 import com.vaadin.flow.data.provider.hierarchy.TreeData;
 import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
+import com.vaadin.flow.data.provider.hierarchy.HierarchicalDataProvider.HierarchyFormat;
 import com.vaadin.flow.data.renderer.LitRenderer;
 import com.vaadin.flow.data.selection.MultiSelect;
 import com.vaadin.flow.data.selection.SelectionModel;
@@ -955,18 +957,47 @@ public class Tree<T> extends Composite<Div>
     }
 
     /**
-     * Scrolls to a certain item.
+     * Scrolls to the index of an item so that the row is shown at the start of
+     * the visible area whenever possible. The way the {@code index} parameter
+     * is interpreted depends on the
+     * {@link HierarchicalDataProvider#getHierarchyFormat() hierarchy format} of
+     * the current data provider:
      * <p>
-     * If the item has an open details row, its size will also be taken into
-     * account.
+     * {@link HierarchyFormat#NESTED}: the index refers to an item in the root
+     * level. To reach items in deeper levels, use
+     * {@link #scrollToIndex(int...)}, which accepts a hierarchical path.
+     * <p>
+     * {@link HierarchyFormat#FLATTENED}: the index refers to an item in the
+     * entire flattened tree, not only the root level, allowing items at any
+     * expanded level to be reached with this method.
+     * <p>
+     * If the index exceeds the valid range, scrolling stops at the last
+     * available item.
      *
-     * @param row
-     *            zero based index of the item to scroll to in the current view.
-     * @throws IllegalArgumentException
-     *             if the provided row is outside the item range
+     * @param index
+     *            zero based index of the item to scroll to
      */
-    public void scrollToIndex(int row) throws IllegalArgumentException {
-        treeGrid.scrollToIndex(row);
+    public void scrollToIndex(int index) throws IllegalArgumentException {
+        treeGrid.scrollToIndex(index);
+    }
+
+    /**
+     * Scrolls to the given item unless it is already fully visible. Before
+     * scrolling, this method automatically expands all ancestor items leading
+     * to the target item, but it does not fire any {@link ExpandEvent} while
+     * doing so.
+     * <p>
+     * For this method to work, the data provider must implement two methods:
+     * {@link HierarchicalDataProvider#getParent(T)} and
+     * {@link HierarchicalDataProvider#getItemIndex(T, HierarchicalQuery)}.
+     * <p>
+     * Depending on the type of data provider, some of these methods may already
+     * be implemented. Otherwise, you have to implement them manually.
+     *
+     * @param item Item to scroll to.
+     */
+    public void scrollToItem(T item) {
+        treeGrid.scrollToItem(item);
     }
 
     /**

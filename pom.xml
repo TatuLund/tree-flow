@@ -3,7 +3,7 @@
 
     <groupId>org.vaadin.tatu</groupId>
     <artifactId>tree</artifactId>
-    <version>4.0.0</version>
+    <version>4.1.0</version>
     <name>tree</name>
     <description>Tree component for Vaadin 25</description>
 
