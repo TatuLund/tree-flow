@@ -960,14 +960,14 @@ public class Tree<T> extends Composite<Div>
      * Scrolls to the index of an item so that the row is shown at the start of
      * the visible area whenever possible. The way the {@code index} parameter
      * is interpreted depends on the
-     * {@link HierarchicalDataProvider#getHierarchyFormat() hierarchy format} of
+     * HierarchicalDataProvider#getHierarchyFormat() hierarchy format of
      * the current data provider:
      * <p>
-     * {@link HierarchyFormat#NESTED}: the index refers to an item in the root
+     * HierarchyFormat#NESTED: the index refers to an item in the root
      * level. To reach items in deeper levels, use
      * {@link #scrollToIndex(int...)}, which accepts a hierarchical path.
      * <p>
-     * {@link HierarchyFormat#FLATTENED}: the index refers to an item in the
+     * HierarchyFormat#FLATTENED: the index refers to an item in the
      * entire flattened tree, not only the root level, allowing items at any
      * expanded level to be reached with this method.
      * <p>
@@ -988,8 +988,8 @@ public class Tree<T> extends Composite<Div>
      * doing so.
      * <p>
      * For this method to work, the data provider must implement two methods:
-     * {@link HierarchicalDataProvider#getParent(T)} and
-     * {@link HierarchicalDataProvider#getItemIndex(T, HierarchicalQuery)}.
+     * HierarchicalDataProvider#getParent(T) and
+     * HierarchicalDataProvider#getItemIndex(T, HierarchicalQuery).
      * <p>
      * Depending on the type of data provider, some of these methods may already
      * be implemented. Otherwise, you have to implement them manually.
