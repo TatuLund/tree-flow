@@ -70,8 +70,8 @@ import com.vaadin.flow.shared.Registration;
  * @param <T>
  *            the data type
  */
-@CssImport(value = "./grid-tree-toggle-adjust.css", themeFor = "custom-grid-tree-toggle")
-@JsModule("./custom-grid-tree-toggle.js")
+@CssImport(value = "./custom-grid-tree-toggle.css", themeFor = "custom-grid-tree-toggle")
+@JsModule("./custom-grid-tree-toggle.ts")
 public class Tree<T> extends Composite<Div>
         implements HasHierarchicalDataProvider<T>, Focusable, HasComponents,
         HasSize, HasElement, HasTheme {
@@ -816,20 +816,6 @@ public class Tree<T> extends Composite<Div>
         treeGrid.getDataCommunicator().reset();
     }
 
-    /**
-     * Sets the style generator that is used for generating class names for
-     * items in this tree. Returning null from the generator results in no
-     * custom style name being set.
-     *
-     * @param classNameGenerator
-     *            the item style generator to set, not {@code null}
-     * @throws NullPointerException
-     *             if {@code styleGenerator} is {@code null}
-     */
-    public void setClassNameGenerator(
-            SerializableFunction<T, String> classNameGenerator) {
-        treeGrid.setClassNameGenerator(classNameGenerator);
-    }
 
     /**
      * Sets the tooltip generator that is used for generating tooltip
@@ -872,15 +858,6 @@ public class Tree<T> extends Composite<Div>
      */
     public ValueProvider<T, StreamResource> getIconSrcProvider() {
         return iconSrcProvider;
-    }
-
-    /**
-     * Gets the class name generator.
-     *
-     * @return the item style generator
-     */
-    public SerializableFunction<T, String> getClassNameGenerator() {
-        return treeGrid.getClassNameGenerator();
     }
 
     /**

@@ -18,7 +18,7 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 
 @Route("")
-public class View extends Div implements AppShellConfigurator {
+public class View extends Div {
 
     public View() {
         DepartmentData departmentData = new DepartmentData();
